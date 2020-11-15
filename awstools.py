@@ -11,6 +11,7 @@ import os
 debug = False
 set_profile = 'default'
 set_region = None
+ip_to_use = ip_to_use
 
 def load_defaults(config_file):
     global debug, set_profile, set_region
@@ -20,7 +21,7 @@ def load_defaults(config_file):
         config.read(config_file)
 
         try:
-            debug = config.getboolean('awsh', 'debug')
+            debug = config.getboolean('awstools', 'debug')
         except:
             debug = False
 
@@ -33,6 +34,12 @@ def load_defaults(config_file):
             set_region = config.get('aws', 'region').strip('"').strip("'").strip()
         except:
             set_region = None
+
+        try:
+            ip_to_use = config.get('aws', 'useIP').strip('"').strip("'").strip()
+        except:
+            ip_to_use = 'PrivateIpAddress'
+
     except:
         pass
 
@@ -77,7 +84,7 @@ def awstools(profile, region):
 @click.argument('name', default='')
 @click.option('--running', is_flag=True, default=False, help='show only running instances')
 def search(name, running):
-    global debug
+    global debug, ip_to_use
 
     reservations = aws_search_instances(name=None)
 
@@ -90,14 +97,14 @@ def search(name, running):
                         name_found = True
                         if name in tag['Value'] or not name:
                             if running and instance['State']['Name']=='running':
-                                print("{: <60} {: <20} {: <20}".format(tag['Value'], instance['PrivateIpAddress'], instance['InstanceId'] ))
+                                print("{: <60} {: <20} {: <20}".format(tag['Value'], instance[ip_to_use], instance['InstanceId'] ))
                             else:
-                                print("{: <60} {: <20} {: <20} {: <20}".format(tag['Value'], instance['PrivateIpAddress'], instance['InstanceId'], instance['State']['Name']))
+                                print("{: <60} {: <20} {: <20} {: <20}".format(tag['Value'], instance[ip_to_use], instance['InstanceId'], instance['State']['Name']))
                 if not name_found:
                             if running and instance['State']['Name']=='running':
-                                print("{: <60} {: <20} {: <20}".format('-', instance['PrivateIpAddress'], instance['InstanceId'] ))
+                                print("{: <60} {: <20} {: <20}".format('-', instance[ip_to_use], instance['InstanceId'] ))
                             else:
-                                print("{: <60} {: <20} {: <20} {: <20}".format('-', instance['PrivateIpAddress'], instance['InstanceId'], instance['State']['Name']))
+                                print("{: <60} {: <20} {: <20} {: <20}".format('-', instance[ip_to_use], instance['InstanceId'], instance['State']['Name']))
             except:
                 pass
     
@@ -105,16 +112,17 @@ def search(name, running):
 @awstools.command()
 @click.argument('host')
 def ssh(host):
+    global debug, ip_to_use
     for reservation in aws_search_instances(host):
         for instance in reservation["Instances"]:
             if instance['State']['Name']=='running':
                 try:
-                    subprocess.check_call(['ssh', instance['PrivateIpAddress']])
+                    subprocess.check_call(['ssh', instance[ip_to_use]])
                     return
                 except:
                     return
     sys.exit('Not found')
 
 if __name__ == '__main__':
-    load_defaults(os.path.join(os.getenv("HOME"), '.awsh/config'))
+    load_defaults(os.path.join(os.getenv("HOME"), '.awstools/config'))
     awstools()
