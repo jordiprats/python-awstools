@@ -66,6 +66,11 @@ def aws_search_instances(name):
 
     return response["Reservations"]
 
+def print_instance(instance_name, instance_id, instance_ip, instance_state=None):
+    if instance_state:
+        print("{: <60} {: <20} {: <20} {: <20}".format(instance_name, instance_ip, instance_id, instance_state))
+    else:
+        print("{: <60} {: <20} {: <20}".format(instance_name, instance_ip, instance_id ))
 
 @click.group()
 @click.option('--profile', default=None, help='AWS profile', type=str)
@@ -97,14 +102,14 @@ def search(name, running):
                         name_found = True
                         if name in tag['Value'] or not name:
                             if running and instance['State']['Name']=='running':
-                                print("{: <60} {: <20} {: <20}".format(tag['Value'], instance[ip_to_use], instance['InstanceId'] ))
+                                print_instance(tag['Value'], instance[ip_to_use], instance['InstanceId'])
                             else:
-                                print("{: <60} {: <20} {: <20} {: <20}".format(tag['Value'], instance[ip_to_use], instance['InstanceId'], instance['State']['Name']))
+                                print_instance(tag['Value'], instance[ip_to_use], instance['InstanceId'], instance['State']['Name'])
                 if not name_found:
                             if running and instance['State']['Name']=='running':
-                                print("{: <60} {: <20} {: <20}".format('-', instance[ip_to_use], instance['InstanceId'] ))
+                                print_instance('-', instance[ip_to_use], instance['InstanceId'])
                             else:
-                                print("{: <60} {: <20} {: <20} {: <20}".format('-', instance[ip_to_use], instance['InstanceId'], instance['State']['Name']))
+                                print_instance('-', instance[ip_to_use], instance['InstanceId'], instance['State']['Name'])
             except:
                 pass
     
