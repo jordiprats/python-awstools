@@ -11,8 +11,8 @@ with open('requirements.txt') as requirementstxt:
         requires.append(line)
 
 setuptools.setup(
-  name = 'awsh',
-  scripts=['awsh'],
+  name = 'awstools',
+  scripts=['awstools', 'awsh'],
   version = '2020.11.13',
   author = 'Jordi Prats',
   author_email = 'jprats@systemadmin.es',
