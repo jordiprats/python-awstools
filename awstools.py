@@ -124,7 +124,8 @@ def ssh(host):
                 try:
                     subprocess.check_call(['ssh', instance[ip_to_use]])
                     return
-                except:
+                except Exception as e:
+                    print(str(e))
                     return
     sys.exit('Not found')
 
